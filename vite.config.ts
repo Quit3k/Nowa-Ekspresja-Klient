@@ -7,4 +7,5 @@ export default defineConfig({
     react(),
     tailwindcss(), // <-- DODAJ
   ],
+  base: "/Nowa-Ekspresja-Klient/",
 })
