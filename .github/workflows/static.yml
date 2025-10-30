@@ -1,0 +1,65 @@
+# Simple workflow for deploying static content to GitHub Pages
+name: Deploy static content to Pages
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Job odpowiedzialny za kompilację projektu
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      # KROK 1: Używamy Node.js do środowiska React/Vite
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Używamy zalecanej wersji Node.js
+
+      # KROK 2: Instalacja zależności i kompilacja (npm run build)
+      - name: Install dependencies and Build
+        run: |
+          npm install
+          npm run build
+      
+      # KROK 3: Konfiguracja GitHub Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      
+      # KROK 4: Upload artefaktu (wysyłamy tylko folder dist)
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # WAŻNE: Wrzucamy tylko skompilowany folder /dist
+          path: './dist' 
+
+  # Job odpowiedzialny za wdrożenie (musi być po build)
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build # Ten krok czeka na zakończenie joba 'build'
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
